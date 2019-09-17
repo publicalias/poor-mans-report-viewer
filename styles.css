@@ -1,0 +1,39 @@
+/*components*/
+
+.c-form__input, .c-form__label, .c-form__submit { display: block; }
+
+.c-table { border-collapse: collapse; }
+
+.c-table__cell {
+  border: 1px solid black;
+  font-weight: normal;
+  padding: 5px;
+  text-align: left;
+}
+
+.c-table__cell--sortable {
+  border: 1px solid black;
+  padding: 0;
+}
+
+.c-table__button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 5px;
+  text-align: left;
+  width: 100%;
+}
+
+/*states*/
+
+.js-toggle-input.is-hidden, .js-toggle-output.is-hidden { display: none; }
+
+.js-toggle-loading-state.is-loading { cursor: wait; }
+
+/*utilities*/
+
+.u-margin-above { margin: 10px 0 0; }
+
+.u-margin-below { margin: 0 0 10px; }

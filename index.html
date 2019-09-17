@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Poor Man's Report Viewer</title>
+  <meta charset="UTF-8">
+  <meta content="Ethan Frost" name="author">
+  <meta content="This is a poor man's substitute for some of the common use cases of Report Viewer when the latter is unavailable or not working." name="description">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link href="./styles.css" rel="stylesheet">
+  <script defer src="./script.js"></script>
+</head>
+
+<body class="js-toggle-loading-state">
+  <main aria-live="polite">
+    <section class="js-toggle-input">
+      <form class="c-form js-submit-input">
+        <label class="c-form__label u-margin-below">
+          First snapshot:
+          <input accept=".txt" class="c-form__input js-input-file-start u-margin-above" required type="file">
+        </label>
+        <label class="c-form__label u-margin-below">
+          Second snapshot:
+          <input accept=".txt" class="c-form__input js-input-file-end u-margin-above" required type="file">
+        </label>
+        <label class="c-form__label u-margin-below">
+          ID label:
+          <input class="c-form__input js-input-text-id u-margin-above" placeholder="SKU" required>
+        </label>
+        <label class="c-form__label u-margin-below">
+          Quantity label:
+          <input class="c-form__input js-input-text-quantity u-margin-above" placeholder="QTY" required>
+        </label>
+        <input class="c-form__submit" type="submit">
+      </form>
+    </section>
+    <section class="js-toggle-output is-hidden">
+      <table class="c-table">
+        <thead class="c-table__head js-render-head"></thead>
+        <tbody class="c-table__body js-render-body"></tbody>
+      </table>
+    </section>
+  </main>
+</body>
+
+</html>
