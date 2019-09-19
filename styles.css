@@ -1,6 +1,17 @@
+@import "./assets/normalize.css";
+
 /*components*/
 
+.c-content { padding: 20px; }
+
+.c-form__fields {
+  display: inline-block;
+  margin: 0;
+}
+
 .c-form__input, .c-form__label, .c-form__submit { display: block; }
+
+.c-form__submit { margin-left: 14px; }
 
 .c-table { border-collapse: collapse; }
 
@@ -19,8 +30,6 @@
 .c-table__button {
   background: none;
   border: none;
-  font-family: inherit;
-  font-size: inherit;
   padding: 5px;
   text-align: left;
   width: 100%;
@@ -34,6 +43,8 @@
 
 /*utilities*/
 
-.u-margin-above { margin: 10px 0 0; }
+.u-margin-above { margin-top: 10px; }
 
-.u-margin-below { margin: 0 0 10px; }
+.u-margin-below { margin-bottom: 10px; }
+
+.u-margin-right { margin-right: 10px; }
