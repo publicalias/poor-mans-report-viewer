@@ -4,6 +4,8 @@
 
 const cycleItems = (arr, val, delta = 1) => {
 
+  //cycle through an array of items
+
   const i = arr.indexOf(val);
   const l = arr.length;
 
@@ -13,7 +15,60 @@ const cycleItems = (arr, val, delta = 1) => {
 
 };
 
+const initDragItem = (DOMItem, data, fn) => {
+
+  //make an item a drag and drop target
+
+  const handleDragStart = (event) => {
+    event.dataTransfer.setData("text/plain", data);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault(); //necessary
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    fn(event.dataTransfer.getData("text/plain"), data);
+  };
+
+  DOMItem.setAttribute("draggable", "true");
+
+  DOMItem.addEventListener("dragstart", handleDragStart);
+  DOMItem.addEventListener("dragover", handleDragOver);
+
+  DOMItem.addEventListener("drop", handleDrop);
+
+};
+
+const initSort = (from, to) => {
+
+  //sort keys according to a predefined order
+
+  const map = to.map((e) => from.indexOf(e));
+
+  return (obj) => Object
+    .entries(obj)
+    .reduce((acc, e, i) => {
+
+      acc[map.indexOf(i)] = e;
+
+      return acc;
+
+    }, [])
+    .reduce((acc, [key, val]) => {
+
+      acc[key] = val;
+
+      return acc;
+
+    }, {});
+
+};
+
 const initTabGroup = (group) => {
+
+  //manage tab index for a group of elements
 
   const DOMGroup = document.querySelectorAll(group);
 
@@ -102,7 +157,9 @@ const state = {
 
   },
 
+  dragged: null,
   sorted: null,
+
   loading: 0
 
 };
@@ -127,9 +184,14 @@ const DOMRenderBody = document.querySelector(".js-render-body");
 
 //app logic
 
-const initHead = (start, end) => {
+const diffAndFilter = (start, end) => {
 
-  //validate files and define head
+  /*
+    get the difference between two files
+    row/column order doesn't matter
+    missing/extra rows are treated as zero quantity
+    missing/extra columns are ignored
+  */
 
   const { labels: { id, quantity, delta } } = state;
 
@@ -148,48 +210,6 @@ const initHead = (start, end) => {
   for (const e of [start.head, end.head, head]) {
     e.push(delta);
   }
-
-  return head;
-
-};
-
-const initSort = (from, to) => {
-
-  //sort keys according to a predefined order
-
-  const map = to.map((e) => from.indexOf(e));
-
-  return (obj) => Object
-    .entries(obj)
-    .reduce((acc, e, i) => {
-
-      acc[map.indexOf(i)] = e;
-
-      return acc;
-
-    }, [])
-    .reduce((acc, [key, val]) => {
-
-      acc[key] = val;
-
-      return acc;
-
-    }, {});
-
-};
-
-const diffAndFilter = (start, end) => {
-
-  /*
-    get the difference between two files
-    row/column order doesn't matter
-    missing/extra rows are treated as zero quantity
-    missing/extra columns are ignored
-  */
-
-  const { labels: { quantity, delta } } = state;
-
-  const head = initHead(start, end);
 
   const sortStart = initSort(start.head, head);
   const sortEnd = initSort(end.head, head);
@@ -278,17 +298,40 @@ const renderOutput = ({ head, body }) => {
     `).join("")}`;
   };
 
-  const handleSort = (key) => () => {
+  const handleDrag = (from, to) => {
 
-    body.sort((a, b) => {
+    const next = head.slice();
 
-      const [one, two] = key === state.sorted ? [b, a] : [a, b];
+    next.splice(next.indexOf(to), 0, ...next.splice(next.indexOf(from), 1));
 
-      return one[key] < two[key] ? -1 : one[key] > two[key] ? 1 : 0;
+    const sort = initSort(head, next);
 
+    state.dragged = from;
+
+    renderOutput({
+      head: next,
+      body: body.map(sort)
     });
 
-    state.sorted = key === state.sorted ? null : key;
+    state.dragged = null;
+
+  };
+
+  const handleSort = (key) => () => {
+
+    if (!state.dragged) {
+
+      body.sort((a, b) => {
+
+        const [one, two] = key === state.sorted ? [b, a] : [a, b];
+
+        return one[key] < two[key] ? -1 : one[key] > two[key] ? 1 : 0;
+
+      });
+
+      state.sorted = key === state.sorted ? null : key;
+
+    }
 
     handleUpdate();
 
@@ -299,7 +342,7 @@ const renderOutput = ({ head, body }) => {
       ${head.map((e) => `
         <th class="c-table__cell--sortable" scope="col">
           <button
-            class="c-table__button js-toggle-sort js-toggle-sort-${kebabCase(e)}"
+            class="c-table__button js-sortable js-sortable-${kebabCase(e)}"
           >
             &#8691; ${e}
           </button>
@@ -308,15 +351,21 @@ const renderOutput = ({ head, body }) => {
     </tr>
   `;
 
-  initTabGroup(".js-toggle-sort");
+  initTabGroup(".js-sortable");
 
   handleSort(state.labels.delta)();
 
   for (const e of head) {
 
-    const DOMSort = document.querySelector(`.js-toggle-sort-${kebabCase(e)}`);
+    const DOMItem = document.querySelector(`.js-sortable-${kebabCase(e)}`);
 
-    DOMSort.addEventListener("click", handleSort(e));
+    initDragItem(DOMItem, e, handleDrag);
+
+    if (e === state.dragged) {
+      DOMItem.click(); //initialize focus
+    }
+
+    DOMItem.addEventListener("click", handleSort(e));
 
   }
 
