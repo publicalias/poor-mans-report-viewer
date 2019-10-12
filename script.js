@@ -94,8 +94,12 @@ const state = {
   },
 
   labels: {
+
     id: labels ? labels.id : "",
-    quantity: labels ? labels.quantity : ""
+    quantity: labels ? labels.quantity : "",
+
+    delta: ""
+
   },
 
   sorted: null,
@@ -110,9 +114,6 @@ const DOMLoading = document.querySelector(".js-toggle-loading-state");
 const DOMInput = document.querySelector(".js-toggle-input");
 const DOMOutput = document.querySelector(".js-toggle-output");
 
-const DOMRenderHead = document.querySelector(".js-render-head");
-const DOMRenderBody = document.querySelector(".js-render-body");
-
 const DOMFileStart = document.querySelector(".js-input-file-start");
 const DOMFileEnd = document.querySelector(".js-input-file-end");
 
@@ -121,7 +122,36 @@ const DOMTextQuantity = document.querySelector(".js-input-text-quantity");
 
 const DOMSubmit = document.querySelector(".js-submit-input");
 
+const DOMRenderHead = document.querySelector(".js-render-head");
+const DOMRenderBody = document.querySelector(".js-render-body");
+
 //app logic
+
+const initHead = (start, end) => {
+
+  //validate files and define head
+
+  const { labels: { id, quantity, delta } } = state;
+
+  let head = start.head.slice();
+
+  head.unshift(...head.splice(head.indexOf(id), 1));
+
+  head = head.filter((e) => end.head.includes(e));
+
+  if (!head.length) {
+    throw Error("The files are incompatible.");
+  } else if (!head.includes(id) || !head.includes(quantity)) {
+    throw Error("The labels are incompatible with the files.");
+  }
+
+  for (const e of [start.head, end.head, head]) {
+    e.push(delta);
+  }
+
+  return head;
+
+};
 
 const initSort = (from, to) => {
 
@@ -129,7 +159,8 @@ const initSort = (from, to) => {
 
   const map = to.map((e) => from.indexOf(e));
 
-  return (obj) => Object.entries(obj)
+  return (obj) => Object
+    .entries(obj)
     .reduce((acc, e, i) => {
 
       acc[map.indexOf(i)] = e;
@@ -156,19 +187,9 @@ const diffAndFilter = (start, end) => {
     missing/extra columns are ignored
   */
 
-  const { labels: { id, quantity } } = state;
+  const { labels: { quantity, delta } } = state;
 
-  let head = start.head.slice();
-
-  head.unshift(...head.splice(head.indexOf(id), 1));
-
-  head = head.filter((e) => end.head.includes(e));
-
-  if (!head.length) {
-    throw Error("The files are incompatible.");
-  } else if (!head.includes(id) || !head.includes(quantity)) {
-    throw Error("The labels are incompatible with the files.");
-  }
+  const head = initHead(start, end);
 
   const sortStart = initSort(start.head, head);
   const sortEnd = initSort(end.head, head);
@@ -177,24 +198,24 @@ const diffAndFilter = (start, end) => {
 
     const diff = end.body[key] || { [quantity]: 0 };
 
-    if (val[quantity] !== diff[quantity]) {
-      val[quantity] = diff[quantity] - val[quantity];
-      acc.push(sortStart(val));
-    }
-
-    return acc;
+    return val[quantity] === diff[quantity] ? acc : acc.concat(sortStart({
+      ...val,
+      [delta]: diff[quantity] - val[quantity],
+      [quantity]: diff[quantity]
+    }));
 
   }, []);
 
-  const added = Object.entries(end.body)
-    .filter(([key]) => !start.body[key])
-    .map(([, val]) => sortEnd(val));
-
-  const body = changed.concat(added).sort((a, b) => a[id] - b[id]);
+  const added = Object
+    .entries(end.body)
+    .reduce((acc, [key, val]) => start.body[key] ? acc : acc.concat(sortEnd({
+      ...val,
+      [delta]: val[quantity]
+    })), []);
 
   return {
     head,
-    body
+    body: changed.concat(added)
   };
 
 };
@@ -203,16 +224,15 @@ const parseFile = (file) => {
 
   //convert files to lookup tables
 
-  const [head, ...body] = file.split(/\r?\n/)
+  const [head, ...body] = file
+    .split(/\r?\n/)
     .map((e) => e.split(/\t/).filter((e) => e !== ""))
     .filter((e) => e.length);
 
   const id = head.indexOf(state.labels.id);
 
   return {
-
     head,
-
     body: body.reduce((acc, e) => {
 
       acc[e[id]] = e.reduce((acc, e, i) => {
@@ -226,7 +246,6 @@ const parseFile = (file) => {
       return acc;
 
     }, {})
-
   };
 
 };
@@ -291,7 +310,7 @@ const renderOutput = ({ head, body }) => {
 
   initTabGroup(".js-toggle-sort");
 
-  handleSort(state.labels.quantity)();
+  handleSort(state.labels.delta)();
 
   for (const e of head) {
 
@@ -313,16 +332,6 @@ const toggleView = (input = false, output = false) => {
 };
 
 //events
-
-const handleLoad = (key) => (event) => {
-
-  //save file
-
-  state[key].file = event.target.result;
-
-  isLoading();
-
-};
 
 const handleChangeFile = (key) => (event) => {
 
@@ -348,11 +357,23 @@ const handleChangeText = (key) => (event) => {
 
 };
 
+const handleLoad = (key) => (event) => {
+
+  //save file
+
+  state[key].file = event.target.result;
+
+  isLoading();
+
+};
+
 const handleSubmit = (event) => {
 
   //parse input files and render output
 
   event.preventDefault();
+
+  state.labels.delta = `${state.labels.quantity} Δ`;
 
   store("labels", () => ({
     id: DOMTextID.value,
