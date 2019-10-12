@@ -35,6 +35,8 @@
   width: 100%;
 }
 
+.c-table__button:focus { outline-offset: -2px; } /*fixes firefox outline*/
+
 /*states*/
 
 .js-toggle-input.is-hidden, .js-toggle-output.is-hidden { display: none; }
