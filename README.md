@@ -2,7 +2,7 @@
 
 Report Viewer is part of the POS system my store uses. It's an indispensable tool when you have tens of thousands of items to keep track of. It stopped working awhile ago, and since it hasn't been fixed at the store level, I wrote this script to satisfy our most common use cases.
 
-It's based on the fact that the POS system lets you take snapshots of inventory and export them as text files. If you take two snapshots, say, a week apart, you can see what you sold in that time period. The output is a sortable table showing the differences in quantities. It runs on [GitHub Pages](https://publicalias.github.io/poor-mans-report-viewer/) and offline by downloading the repository.
+It's based on the fact that the POS system lets you take snapshots of inventory and export them as text files. If you take two snapshots, say, a week apart, you can see what you sold in that time period. The output is a sortable table showing the differences in quantities. It runs on [GitHub Pages](https://publicalias.github.io/poor-mans-report-viewer/) and offline by downloading the repository. It supports Chrome and Firefox.
 
 It makes the following assumptions:
 
