@@ -214,28 +214,31 @@ const diffAndFilter = (start, end) => {
   const sortStart = initSort(start.head, head);
   const sortEnd = initSort(end.head, head);
 
-  const changed = Object.entries(start.body).reduce((acc, [key, val]) => {
+  const changed = Object
+    .entries(start.body)
+    .reduce((acc, [key, val]) => {
 
-    const diff = end.body[key] || { [quantity]: 0 };
+      const diff = end.body[key] || { [quantity]: 0 };
 
-    return val[quantity] === diff[quantity] ? acc : acc.concat(sortStart({
-      ...val,
-      [delta]: diff[quantity] - val[quantity],
-      [quantity]: diff[quantity]
-    }));
+      return acc.concat(sortStart({
+        ...val,
+        [delta]: diff[quantity] - val[quantity],
+        [quantity]: diff[quantity]
+      }));
 
-  }, []);
+    }, []);
 
   const added = Object
     .entries(end.body)
-    .reduce((acc, [key, val]) => start.body[key] ? acc : acc.concat(sortEnd({
+    .filter(([key]) => !start.body[key])
+    .reduce((acc, [, val]) => acc.concat(sortEnd({
       ...val,
-      [delta]: val[quantity]
+      [delta]: 0 + Number(val[quantity])
     })), []);
 
   return {
     head,
-    body: changed.concat(added)
+    body: changed.concat(added).filter((e) => e[delta] !== 0)
   };
 
 };
